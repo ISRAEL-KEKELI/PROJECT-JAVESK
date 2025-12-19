@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Javesk – Micro-courses, mentors, jobs</title>
+  <meta name="description" content="Search micro-courses, learn offline, earn certificates, access mentorship and job placement resources." />
+  <style>
+    :root{
+      /* Gold + black theme */
+      --bg:#0a0a0a;          /* page background (black) */
+      --surface:#0f0f0f;     /* cards, sheets (near-black) */
+      --surface-2:#141414;   /* secondary surface */
+      --text:#f8f7f2;        /* light text on dark */
+      --muted:#b3a77a;       /* muted gold */
+      --accent:#d4af37;      /* gold primary */
+      --accent2:#f6d365;     /* gold hover (lighter) */
+      --accent3:#b08d2a;     /* darker gold for active tab */
+      --border:#2a2a2a;      /* subtle dark border */
+      --chip:#1a1a1a;        /* pill & chip bg */
+      --danger:#ef4444;
+      --warning:#f59e0b;
+      --success:#22c55e;
+      --shadow:0 8px 24px rgba(212,175,55,.18);
+      --radius:14px;
+      --touch:18px;
+      --maxw:980px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol";
+      background:var(--bg);
+      color:var(--text);
+    }
+    .app{
+      display:flex;
+      flex-direction:column;
+      min-height:100%;
+      max-width:var(--maxw);
+      margin:0 auto;
+      background:
+        radial-gradient(800px 200px at 20% 0%, rgba(212,175,55,.12) 0%, transparent 60%),
+        radial-gradient(500px 120px at 90% -20%, rgba(246,211,101,.10) 0%, transparent 60%);
+    }
+
+    header{
+      padding:16px 16px 8px;
+      border-bottom:1px solid var(--border);
+      position:sticky; top:0; background:var(--bg); z-index:10;
+    }
+    .brand{display:flex; align-items:center; gap:10px}
+    .brand-logo{
+      width:42px; height:42px; border-radius:10px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      display:flex; align-items:center; justify-content:center; font-weight:800; color:#0a0a0a;
+      box-shadow:var(--shadow);
+    }
+    .brand-name{font-weight:800; letter-spacing:.3px}
+    .brand-sub{color:var(--muted); font-size:13px}
+
+    .search{margin-top:12px; display:flex; gap:8px}
+    .search input{
+      flex:1; padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--surface); color:var(--text);
+      font-size:16px;
+    }
+    .search button{
+      padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:var(--chip); color:var(--text); font-weight:600;
+      transition:background .15s ease, transform .05s ease, border-color .12s ease;
+    }
+    .search button:hover{ background:#1f1f1f; border-color:#3a3a3a }
+    .search button:active{ transform:scale(.98) }
+
+    .filters{display:flex; gap:8px; overflow:auto; padding:10px 0}
+    .chip{
+      padding:8px 12px; border-radius:999px; background:var(--chip);
+      border:1px solid var(--border); color:var(--text); white-space:nowrap; font-size:14px;
+      transition:background .15s ease, border-color .15s ease, transform .05s ease, color .12s ease;
+    }
+    .chip:hover{ background:#222; border-color:#3a3a3a; color:#fefefe }
+    .chip:active{ transform:scale(.98) }
+    .chip.active{
+      background:var(--accent); color:#0a0a0a; border-color:var(--accent);
+      box-shadow:0 0 0 2px rgba(212,175,55,.45) inset;
+    }
+
+    main{flex:1; overflow:auto; padding:12px 16px 120px}
+    .section-title{font-size:16px; color:var(--muted); margin:8px 0 10px}
+
+    /* Responsive grid */
+    .grid{display:grid; grid-template-columns: 1fr; gap:12px}
+    @media(min-width:640px){ .grid{grid-template-columns: repeat(2, 1fr);} }
+    @media(min-width:960px){ .grid{grid-template-columns: repeat(3, 1fr);} }
+
+    .card{
+      background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+      box-shadow:var(--shadow);
+      transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+    }
+    .card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 12px 28px rgba(212,175,55,.25);
+      border-color:#3a3a3a;
+      background:#121212;
+    }
+    .thumb{
+      height:140px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; position:relative;
+    }
+    .thumb img{width:100%; height:100%; object-fit:cover}
+    .badge{
+      position:absolute; bottom:8px; left:8px; background:#1c1c1c; border:1px solid var(--border); color:var(--muted);
+      padding:6px 10px; border-radius:999px; font-size:12px;
+    }
+    .card-body{padding:12px}
+    .title{font-weight:700; font-size:15px; line-height:1.3}
+    .meta{margin-top:6px; font-size:13px; color:var(--muted)}
+    .meta span{margin-right:8px}
+    .tags{margin-top:8px; display:flex; flex-wrap:wrap; gap:6px}
+    .tag{font-size:12px; padding:6px 8px; border-radius:999px; background:#1a1a1a; border:1px solid var(--border); color:#e9e3c3}
+    .card-actions{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap}
+    .btn{
+      flex:1; padding:10px; border-radius:12px; border:1px solid var(--border); background:var(--chip); color:var(--text); font-weight:600; text-align:center;
+      transition:background .15s ease, transform .05s ease, border-color .12s ease, color .12s ease;
+    }
+    .btn:hover{ background:#1f1f1f; border-color:#3a3a3a }
+    .btn:active{ transform:scale(.98) }
+    .btn.primary{background:var(--accent); color:#0a0a0a; border-color:var(--accent)}
+    .btn.primary:hover{ background:var(--accent2) }
+    .btn.pay{background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#0a0a0a; border:none}
+    .btn.pay:hover{ filter:brightness(1.05) }
+
+    .empty{
+      background:var(--surface-2); border:1px dashed var(--border); padding:16px; border-radius:12px; color:#cfc6a0
+    }
+
+    /* Details modal (gold/black sheet) */
+    .modal{
+      position:fixed; inset:0; display:none; background:rgba(212,175,55,.12); backdrop-filter:saturate(120%) blur(6px); z-index:50;
+    }
+    .modal.open{display:flex; align-items:flex-end}
+    .sheet{
+      width:100%; max-width:var(--maxw); margin:0 auto; background:var(--surface); border-top-left-radius:18px; border-top-right-radius:18px; border:1px solid var(--border);
+      max-height:85vh; overflow:auto; box-shadow:var(--shadow);
+      animation:slideUp .2s ease-out;
+    }
+    @keyframes slideUp{from{transform:translateY(20px); opacity:.8} to{transform:translateY(0); opacity:1}}
+    .sheet-header{padding:14px 16px; display:flex; gap:12px; align-items:center; border-bottom:1px solid var(--border)}
+    .sheet-title{font-weight:700}
+    .sheet-close{
+      margin-left:auto; background:var(--chip); border:1px solid var(--border); color:var(--text); padding:8px 10px; border-radius:10px;
+      transition:background .15s ease, transform .05s ease, border-color .12s ease;
+    }
+    .sheet-close:hover{ background:#1f1f1f; border-color:#3a3a3a }
+    .sheet-close:active{ transform:scale(.98) }
+    .sheet-body{padding:12px 16px}
+    .panel{background:#111111; border:1px solid var(--border); padding:12px; border-radius:12px; margin-bottom:10px}
+    .panel h4{margin:0 0 8px; font-size:15px; color:#e9e3c3}
+    .list{display:flex; flex-direction:column; gap:8px}
+    .row{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap}
+    .status{display:inline-flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .pill{padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:#1a1a1a; font-size:12px; color:#e9e3c3}
+    .pill.success{background:#142116; border-color:#1f3322; color:#88e1a8}
+    .pill.warn{background:#2a210c; border-color:#3b3012; color:#e9c46a}
+    .pill.danger{background:#2a1515; border-color:#3b1f1f; color:#ff9c9c}
+
+    /* Bottom nav with gold tabs; selected tab has white outline */
+    .nav{
+      position:sticky; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); padding:10px 8px;
+      display:flex; gap:8px; z-index:20; box-shadow:0 -8px 24px rgba(212,175,55,.10);
+    }
+    .tab{
+      flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 6px; border-radius:12px;
+      background:var(--accent); color:#0a0a0a; border:1px solid var(--accent);
+      transition:background .15s ease, transform .05s ease, outline-color .12s ease, box-shadow .12s ease;
+      outline:2px solid transparent; outline-offset:-2px;
+      min-width:0;
+      font-weight:700;
+    }
+    .tab:hover{ background:var(--accent2) }
+    .tab:active{ transform:scale(.98) }
+    .tab.active{
+      background:var(--accent3);
+      border-color:var(--accent3);
+      color:#0a0a0a;
+      outline-color:#ffffff;           /* white outline to show selected */
+      box-shadow:0 0 0 2px #ffffff inset; /* crisp inner white outline */
+    }
+    .tab .icon{
+      width:22px; height:22px; border-radius:6px; background:rgba(0,0,0,.15); border:1px solid rgba(0,0,0,.25);
+    }
+
+    /* Accessibility & responsive helpers */
+    button, .btn, .chip, .tab{min-height:var(--touch); touch-action:manipulation; cursor:pointer}
+    .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0}
+    @media (prefers-reduced-motion: reduce){
+      *{animation:none !important; transition:none !important}
+    }
+  </style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="Javesk mobile-first website">
+    <header>
+      <div class="brand" aria-label="Javesk brand">
+        <div class="brand-logo">J</div>
+        <div>
+          <div class="brand-name">Javesk</div>
+          <div class="brand-sub">Micro-courses, mentors, jobs — Ghana-first</div>
+        </div>
+      </div>
+
+      <div class="search" role="search">
+        <label class="sr-only" for="searchInput">Search courses</label>
+        <input id="searchInput" type="search" placeholder="Search title, skill, industry, provider…" aria-label="Search courses">
+        <button id="clearSearch" aria-label="Clear search">Clear</button>
+      </div>
+
+      <div class="filters" aria-label="Quick filters">
+        <button class="chip active" data-filter="industry:all">All industries</button>
+        <button class="chip" data-filter="industry:tech">Tech</button>
+        <button class="chip" data-filter="industry:renewable">Renewable energy</button>
+        <button class="chip" data-filter="industry:agribusiness">Agribusiness</button>
+        <button class="chip" data-filter="industry:creative">Creative economy</button>
+        <button class="chip" data-filter="level:beginner">Beginner</button>
+        <button class="chip" data-filter="level:intermediate">Intermediate</button>
+        <button class="chip" data-filter="price:free">Free</button>
+        <button class="chip" data-filter="price:premium">Premium</button>
+      </div>
+    </header>
+
+    <main id="content">
+      <!-- Learn tab -->
+      <section id="tab-learn" aria-labelledby="learnHeading">
+        <h2 id="learnHeading" class="section-title">Recommended micro-courses</h2>
+        <div id="coursesGrid" class="grid" role="list"></div>
+        <div id="noResults" class="empty" style="display:none" role="status" aria-live="polite">
+          No courses match your filters. Try “solar”, “UI design”, “cassava processing”, or clear filters.
+        </div>
+      </section>
+
+      <!-- Mentors tab -->
+      <section id="tab-mentors" style="display:none" aria-labelledby="mentorsHeading">
+        <h2 id="mentorsHeading" class="section-title">Mentors</h2>
+        <div class="grid" id="mentorsGrid"></div>
+        <div class="panel">
+          <h4>Booking notes</h4>
+          <div class="list">
+            <div class="row"><span>Calendar integration</span><span class="pill warn">Coming soon</span></div>
+            <div class="row"><span>Time zones</span><span class="pill">Africa/Accra</span></div>
+            <div class="row"><span>Session reminders</span><span class="pill warn">Planned</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Jobs tab -->
+      <section id="tab-jobs" style="display:none" aria-labelledby="jobsHeading">
+        <h2 id="jobsHeading" class="section-title">Job board</h2>
+        <div class="grid" id="jobsGrid"></div>
+        <div class="panel">
+          <h4>Sources</h4>
+          <div class="list">
+            <div class="row"><span>Local boards</span><span class="pill">Aggregated</span></div>
+            <div class="row"><span>LinkedIn</span><span class="pill warn">Planned</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Profile tab -->
+      <section id="tab-profile" style="display:none" aria-labelledby="profileHeading">
+        <h2 id="profileHeading" class="section-title">Profile & settings</h2>
+        <div class="panel">
+          <h4>Preferences</h4>
+          <div class="list">
+            <label class="row"><span>Language</span>
+              <select id="langSelect" aria-label="Language">
+                <option>English</option>
+                <option>Twi</option>
+                <option>Ga</option>
+                <option>Ewe</option>
+              </select>
+            </label>
+            <label class="row"><span>Theme</span>
+              <select id="themeSelect" aria-label="Theme">
+                <option>Gold/Black</option>
+                <option>High-contrast</option>
+              </select>
+            </label>
+            <div class="row"><span>Goals & interests</span><button class="btn">Edit</button></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h4>Certificates</h4>
+          <div class="list" id="certsList"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Details modal -->
+    <div class="modal" id="detailsModal" role="dialog" aria-modal="true" aria-labelledby="detailsTitle">
+      <div class="sheet">
+        <div class="sheet-header">
+          <div class="sheet-title" id="detailsTitle">Course details</div>
+          <button class="sheet-close" id="closeDetails" aria-label="Close">Close</button>
+        </div>
+        <div class="sheet-body" id="detailsBody"></div>
+      </div>
+    </div>
+
+    <!-- Payment/status banners -->
+    <div id="banner" class="panel" style="position:fixed; left:8px; right:8px; bottom:92px; display:none">
+      <div class="row">
+        <span id="bannerText">Processing payment…</span>
+        <span id="bannerStatus" class="pill">Pending</span>
+      </div>
+    </div>
+
+    <!-- Bottom nav (gold tabs with hover + white outline when selected) -->
+    <nav class="nav" aria-label="Bottom navigation">
+      <button class="tab active" data-tab="learn" aria-label="Learn">
+        <span class="icon" aria-hidden="true"></span>
+        <span>Learn</span>
+      </button>
+      <button class="tab" data-tab="mentors" aria-label="Mentors">
+        <span class="icon" aria-hidden="true"></span>
+        <span>Mentors</span>
+      </button>
+      <button class="tab" data-tab="jobs" aria-label="Jobs">
+        <span class="icon" aria-hidden="true"></span>
+        <span>Jobs</span>
+      </button>
+      <button class="tab" data-tab="profile" aria-label="Profile">
+        <span class="icon" aria-hidden="true"></span>
+        <span>Profile</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    // ---- Mock data models (Firestore/Supabase-style) ----
+    const courses = [
+      {
+        id: 'c1',
+        title: 'Intro to Solar PV Installation',
+        provider: 'Kwame Nkrumah Energy Lab',
+        industry: 'renewable',
+        level: 'beginner',
+        duration: '6h',
+        thumbUrl: '',
+        overview: 'Learn practical solar PV basics tailored to Ghanaian households and SMEs.',
+        outcomes: ['Site assessment','Panel mounting','Safety basics','Local standards'],
+        price: 0,
+        tags: ['solar PV', 'energy', 'safety'],
+        modules: [
+          { id:'m1', courseId:'c1', type:'video', contentUrl:'#', duration:'20m', title:'Why Solar PV?' },
+          { id:'m2', courseId:'c1', type:'text', contentUrl:'#', duration:'15m', title:'Safety & Tools' },
+          { id:'m3', courseId:'c1', type:'quiz', contentUrl:'#', duration:'10m', title:'Foundations Quiz' },
+        ],
+        mentors: [
+          { id:'me1', name:'Ama', industry:'renewable', bio:'Field technician', availabilitySlots:['Sat 10:00','Sun 15:00'] }
+        ],
+        certification: { badgeUrl:'#', criteria:'Pass final quiz + complete modules', status:'Eligible' },
+        requirements: ['Basic electricity', 'Protective gear'],
+        alignment: ['solar PV','installation','safety']
+      },
+      {
+        id: 'c2',
+        title: 'UI Design for Mobile Apps',
+        provider: 'Accra Design Collective',
+        industry: 'tech',
+        level: 'intermediate',
+        duration: '8h',
+        thumbUrl: '',
+        overview: 'Create clean, accessible mobile UI with Ghanaian context and patterns.',
+        outcomes: ['Wireframes','Color systems','Accessibility','Prototyping'],
+        price: 25,
+        tags: ['UI design','Figma','accessibility'],
+        modules: [
+          { id:'m1', courseId:'c2', type:'video', contentUrl:'#', duration:'22m', title:'Intro & Brief' },
+          { id:'m2', courseId:'c2', type:'text', contentUrl:'#', duration:'18m', title:'Color & Type' },
+          { id:'m3', courseId:'c2', type:'quiz', contentUrl:'#', duration:'12m', title:'Design Quiz' },
+        ],
+        mentors: [
+          { id:'me2', name:'Kojo', industry:'tech', bio:'Product designer', availabilitySlots:['Fri 14:00','Mon 11:00'] }
+        ],
+        certification: { badgeUrl:'#', criteria:'Portfolio submission + quiz', status:'Locked' },
+        requirements: ['Figma basics','Smartphone or laptop'],
+        alignment: ['UI design','mobile','accessibility']
+      },
+      {
+        id: 'c3',
+        title: 'Cassava Processing for SMEs',
+        provider: 'Tamale Agro Hub',
+        industry: 'agribusiness',
+        level: 'beginner',
+        duration: '4h',
+        thumbUrl: '',
+        overview: 'Process cassava safely for high-demand local products.',
+        outcomes: ['Processing flow','Quality control','Packaging','Distribution'],
+        price: 0,
+        tags: ['cassava processing','food safety'],
+        modules: [
+          { id:'m1', courseId:'c3', type:'video', contentUrl:'#', duration:'16m', title:'Overview' },
+          { id:'m2', courseId:'c3', type:'text', contentUrl:'#', duration:'12m', title:'Quality & Hygiene' },
+          { id:'m3', courseId:'c3', type:'quiz', contentUrl:'#', duration:'10m', title:'Safety Quiz' },
+        ],
+        mentors: [
+          { id:'me3', name:'Yaa', industry:'agribusiness', bio:'Food safety consultant', availabilitySlots:['Thu 09:00','Sat 13:00'] }
+        ],
+        certification: { badgeUrl:'#', criteria:'Complete all modules', status:'Eligible' },
+        requirements: ['Basic hygiene','Protective equipment'],
+        alignment: ['cassava processing','SME','quality control']
+      },
+      {
+        id: 'c4',
+        title: 'Photoshop Basics for Creators',
+        provider: 'Cape Coast Creative Studio',
+        industry: 'creative',
+        level: 'beginner',
+        duration: '5h',
+        thumbUrl: '',
+        overview: 'Edit images and create social content quickly.',
+        outcomes: ['Layers','Masks','Color correction','Export'],
+        price: 10,
+        tags: ['Photoshop','content'],
+        modules: [
+          { id:'m1', courseId:'c4', type:'video', contentUrl:'#', duration:'19m', title:'Workspace' },
+          { id:'m2', courseId:'c4', type:'text', contentUrl:'#', duration:'15m', title:'Layers & Masks' },
+          { id:'m3', courseId:'c4', type:'quiz', contentUrl:'#', duration:'10m', title:'Basics Quiz' },
+        ],
+        mentors: [{ id:'me4', name:'Efua', industry:'creative', bio:'Digital artist', availabilitySlots:['Wed 16:00','Sun 12:00'] }],
+        certification: { badgeUrl:'#', criteria:'Complete + pass quiz', status:'Locked' },
+        requirements: ['Photoshop app','Internet for downloads'],
+        alignment: ['Photoshop','content','design']
+      }
+    ];
+
+    const jobs = [
+      { id:'j1', title:'Junior Solar Technician', company:'PowerLite Ghana', location:'Accra', description:'Assist installations, maintain residential PV systems.', applyUrl:'#', tags:['solar','field'] },
+      { id:'j2', title:'UI/UX Intern', company:'FinTech Start-up', location:'Remote (Ghana)', description:'Support mobile app prototyping.', applyUrl:'#', tags:['UI','Figma'] },
+      { id:'j3', title:'Food Safety Assistant', company:'AgroFoods Ltd', location:'Tamale', description:'Quality checks in processing line.', applyUrl:'#', tags:['agribusiness','safety'] },
+    ];
+
+    const mentors = [
+      { id:'me1', name:'Ama', industry:'renewable', bio:'Field technician', availabilitySlots:['Sat 10:00','Sun 15:00'] },
+      { id:'me2', name:'Kojo', industry:'tech', bio:'Product designer', availabilitySlots:['Fri 14:00','Mon 11:00'] },
+      { id:'me3', name:'Yaa', industry:'agribusiness', bio:'Food safety consultant', availabilitySlots:['Thu 09:00','Sat 13:00'] },
+      { id:'me4', name:'Efua', industry:'creative', bio:'Digital artist', availabilitySlots:['Wed 16:00','Sun 12:00'] },
+    ];
+
+    const certs = [
+      { userId:'u1', courseId:'c1', issuedAt:'2025-10-22', badgeUrl:'#', shareableUrl:'#' }
+    ];
+
+    // ---- Core state ----
+    const state = {
+      searchQuery: '',
+      filters: { industry:'all', level:'', price:'' },
+      tab: 'learn',
+      selectedCourse: null,
+      progress: {},
+      authUser: { id:'u1', name:'Guest' },
+      payments: {},
+      offlineQueue: [],
+    };
+
+    // ---- Utilities ----
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    function renderCourses(){
+      const grid = $('#coursesGrid');
+      grid.innerHTML = '';
+      const query = state.searchQuery.trim().toLowerCase();
+
+      const filtered = courses.filter(c=>{
+        const indOk = state.filters.industry==='all' || c.industry===state.filters.industry;
+        const lvlOk = !state.filters.level || c.level===state.filters.level;
+        const priceOk = !state.filters.price || (state.filters.price==='free' ? c.price===0 : c.price>0);
+        const matchesQuery = !query || [
+          c.title, c.provider, c.industry, c.level, c.tags.join(' '), c.alignment.join(' ')
+        ].some(t=>String(t).toLowerCase().includes(query));
+        return indOk && lvlOk && priceOk && matchesQuery;
+      });
+
+      $('#noResults').style.display = filtered.length ? 'none' : 'block';
+
+      filtered.forEach(c=>{
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.setAttribute('role','listitem');
+        card.innerHTML = `
+          <div class="thumb" aria-label="${c.title} thumbnail">
+            ${c.thumbUrl ? `<img alt="${c.title}" src="${c.thumbUrl}"/>` : `<span style="color:${randomGold()};font-weight:700">${placeholderIcon(c.industry)}</span>`}
+            <span class="badge">${c.duration} • ${cap(c.level)}</span>
+          </div>
+          <div class="card-body">
+            <div class="title">${c.title}</div>
+            <div class="meta"><span>${c.provider}</span><span>${cap(c.industry)}</span>${c.price===0 ? '<span>Free</span>' : `<span>GHS ${c.price}</span>`}</div>
+            <div class="tags">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+            <div class="card-actions">
+              <button class="btn primary" data-action="details" data-id="${c.id}" aria-label="View details">View</button>
+              ${c.price===0 ? `<button class="btn" data-action="start" data-id="${c.id}" aria-label="Start course">Start</button>`
+                : `<button class="btn pay" data-action="pay" data-id="${c.id}" aria-label="Pay with mobile money">Buy (Mobile Money)</button>`}
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderMentors(){
+      const grid = $('#mentorsGrid');
+      grid.innerHTML = '';
+      mentors.forEach(m=>{
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="thumb"><span style="color:${randomGold()};font-weight:700">👤 ${cap(m.industry)}</span></div>
+          <div class="card-body">
+            <div class="title">${m.name}</div>
+            <div class="meta">${m.bio}</div>
+            <div class="tags">${m.availabilitySlots.map(s=>`<span class="tag">${s}</span>`).join('')}</div>
+            <div class="card-actions">
+              <button class="btn primary" data-action="request-mentor" data-id="${m.id}">Request session</button>
+              <button class="btn" data-action="message-mentor" data-id="${m.id}">Message</button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderJobs(){
+      const grid = $('#jobsGrid');
+      grid.innerHTML = '';
+      jobs.forEach(j=>{
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="thumb"><span style="color:${randomGold()};font-weight:700">🏢 ${j.company}</span></div>
+          <div class="card-body">
+            <div class="title">${j.title}</div>
+            <div class="meta"><span>${j.company}</span><span>${j.location}</span></div>
+            <div class="tags">${j.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+            <div class="card-actions">
+              <button class="btn primary" data-action="job-details" data-id="${j.id}">Details</button>
+              <a class="btn" href="${j.applyUrl}" target="_blank" rel="noopener">Apply</a>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderCerts(){
+      const list = $('#certsList');
+      list.innerHTML = '';
+      certs.forEach(c=>{
+        const course = courses.find(x=>x.id===c.courseId);
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+          <span>${course?.title || 'Unknown course'} — Issued ${c.issuedAt}</span>
+          <span class="status"><button class="btn" data-action="view-cert" data-id="${c.courseId}">View</button><button class="btn" data-action="share-cert" data-id="${c.courseId}">Share</button></span>
+        `;
+        list.appendChild(row);
+      });
+      if(!certs.length) list.innerHTML = `<div class="empty">No certificates yet. Complete a course to earn badges.</div>`;
+    }
+
+    // ---- Details modal ----
+    function openDetails(courseId){
+      const c = courses.find(x=>x.id===courseId);
+      state.selectedCourse = c;
+      const body = $('#detailsBody');
+      body.innerHTML = `
+        <div class="panel">
+          <h4>Overview</h4>
+          <p>${c.overview}</p>
+          <div class="tags">${c.alignment.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+        </div>
+        <div class="panel">
+          <h4>Outcomes</h4>
+          <div class="list">
+            ${c.outcomes.map(o=>`<div>• ${o}</div>`).join('')}
+          </div>
+        </div>
+        <div class="panel">
+          <h4>Modules</h4>
+          <div class="list">
+            ${c.modules.map(m=>`
+              <div class="row">
+                <span>${cap(m.type)}: ${m.title} • ${m.duration}</span>
+                <span class="status"><button class="btn" data-action="play" data-mid="${m.id}" data-cid="${c.id}">Open</button></span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        <div class="panel">
+          <h4>Mentor info</h4>
+          <div class="list">
+            ${c.mentors.map(me=>`<div class="row"><span>${me.name} — ${me.bio}</span><span class="status">${me.availabilitySlots.map(s=>`<span class="pill">${s}</span>`).join('')}</span></div>`).join('')}
+          </div>
+        </div>
+        <div class="panel">
+          <h4>Certification</h4>
+          <div class="row"><span>${c.certification.criteria}</span><span class="pill ${c.certification.status==='Eligible'?'success':'warn'}">${c.certification.status}</span></div>
+        </div>
+        <div class="panel">
+          <h4>Cost</h4>
+          <div class="row"><span>${c.price===0 ? 'Free' : 'Premium (Mobile Money paywall)'}</span>${c.price>0 ? '<span class="pill warn">Pay to unlock</span>' : '<span class="pill success">Unlocked</span>'}</div>
+        </div>
+        <div class="panel">
+          <h4>Requirements</h4>
+          <div class="list">${c.requirements.map(r=>`<div>• ${r}</div>`).join('')}</div>
+        </div>
+        <div class="row" style="gap:8px">
+          <button class="btn" data-action="start" data-id="${c.id}">Start</button>
+          ${c.price>0 ? `<button class="btn pay" data-action="pay" data-id="${c.id}">Pay with MTN/Vodafone/AirtelTigo</button>`:''}
+          <button class="btn" data-action="download" data-id="${c.id}">Download for offline</button>
+        </div>
+      `;
+      $('#detailsModal').classList.add('open');
+    }
+    function closeDetails(){
+      $('#detailsModal').classList.remove('open');
+      state.selectedCourse = null;
+    }
+
+    // ---- Payment/status banners ----
+    function showBanner(text, status='Pending'){
+      const banner = $('#banner');
+      $('#bannerText').textContent = text;
+      const badge = $('#bannerStatus');
+      badge.textContent = status;
+      badge.className = 'pill ' + (status==='Success'?'success':status==='Failed'?'danger':status==='Warn'?'warn':'');
+      banner.style.display = 'block';
+      setTimeout(()=>banner.style.display='none', 3000);
+    }
+
+    // ---- Event handlers ----
+    $('#searchInput').addEventListener('input', e=>{
+      state.searchQuery = e.target.value;
+      renderCourses();
+    });
+    $('#clearSearch').addEventListener('click', ()=>{
+      state.searchQuery = '';
+      $('#searchInput').value = '';
+      renderCourses();
+    });
+
+    $$('.filters .chip').forEach(ch=>{
+      ch.addEventListener('click', ()=>{
+        const val = ch.dataset.filter;
+        const [key, value] = val.split(':');
+        if(key==='industry') state.filters.industry = value;
+        if(key==='level') state.filters.level = value;
+        if(key==='price') state.filters.price = value;
+        $$('.filters .chip').forEach(c=>c.classList.remove('active'));
+        ch.classList.add('active');
+        renderCourses();
+      });
+    });
+
+    // Delegate clicks
+    document.body.addEventListener('click', e=>{
+      const t = e.target;
+      if(t.matches('[data-action="details"]')) openDetails(t.dataset.id);
+      if(t.matches('#closeDetails')) closeDetails();
+
+      if(t.matches('[data-action="start"]')){
+        const id = t.dataset.id;
+        if(payLocked(id)){ showBanner('Course is premium — please complete payment.', 'Failed'); return; }
+        showBanner('Starting course…', 'Pending');
+        state.progress[id] = state.progress[id] || { completedModules:[], lastVisited:null };
+        showBanner('Course started', 'Success');
+      }
+      if(t.matches('[data-action="download"]')){
+        const id = t.dataset.id;
+        showBanner('Queued for offline download', 'Pending');
+        state.offlineQueue.push({ type:'downloadCourse', id });
+        setTimeout(()=>showBanner('Downloaded for offline use', 'Success'), 1200);
+      }
+      if(t.matches('[data-action="pay"]')){
+        const id = t.dataset.id;
+        showBanner('Redirecting to Paystack/Flutterwave…', 'Pending');
+        setTimeout(()=>{
+          const ok = Math.random()>0.2;
+          state.payments[id] = ok ? 'success':'failed';
+          showBanner(ok ? 'Payment successful. Premium unlocked!' : 'Payment failed. Try again.', ok ? 'Success' : 'Failed');
+          renderCourses();
+          if(state.selectedCourse) openDetails(id);
+        }, 1500);
+      }
+      if(t.matches('[data-action="play"]')){
+        const cid = t.dataset.cid; const mid = t.dataset.mid;
+        if(payLocked(cid)){ showBanner('Locked. Complete payment to access module.', 'Failed'); return; }
+        showBanner('Opening module…', 'Pending');
+        state.progress[cid] = state.progress[cid] || { completedModules:[], lastVisited:null };
+        state.progress[cid].lastVisited = mid;
+        const p = state.progress[cid];
+        if(!p.completedModules.includes(mid)) p.completedModules.push(mid);
+        setTimeout(()=>showBanner('Progress saved', 'Success'), 600);
+      }
+      if(t.matches('[data-action="request-mentor"]')){
+        showBanner('Mentor session requested', 'Success');
+      }
+      if(t.matches('[data-action="message-mentor"]')){
+        showBanner('Opening chat…', 'Pending');
+        setTimeout(()=>showBanner('Chat connected', 'Success'), 600);
+      }
+      if(t.matches('[data-action="job-details"]')){
+        const job = jobs.find(j=>j.id===t.dataset.id);
+        $('#detailsBody').innerHTML = `
+          <div class="panel"><h4>${job.title}</h4><p>${job.description}</p></div>
+          <div class="panel"><h4>Location</h4><p>${job.location}</p></div>
+          <div class="panel"><h4>Tags</h4><div class="tags">${job.tags.map(x=>`<span class="tag">${x}</span>`).join('')}</div></div>
+          <div class="row" style="gap:8px"><a class="btn primary" href="${job.applyUrl}" target="_blank" rel="noopener">Apply</a><button class="btn" id="closeDetails2">Close</button></div>
+        `;
+        $('#detailsModal').classList.add('open');
+      }
+      if(t.matches('#closeDetails2')) closeDetails();
+      if(t.matches('[data-action="view-cert"]')){
+        showBanner('Opening certificate…', 'Pending');
+        setTimeout(()=>showBanner('Certificate loaded', 'Success'), 600);
+      }
+      if(t.matches('[data-action="share-cert"]')){
+        showBanner('Share link copied', 'Success');
+      }
+    });
+
+    // Tabs
+    $$('.nav .tab').forEach(tab=>{
+      tab.addEventListener('click', ()=>{
+        $$('.nav .tab').forEach(t=>t.classList.remove('active'));
+        tab.classList.add('active');
+        const name = tab.dataset.tab;
+        state.tab = name;
+        ['learn','mentors','jobs','profile'].forEach(n=>{
+          $('#tab-'+n).style.display = n===name ? 'block' : 'none';
+        });
+      });
+    });
+
+    // Helpers
+    function cap(s){ return String(s).charAt(0).toUpperCase()+String(s).slice(1); }
+    function randomGold(){ return ['#d4af37','#f6d365','#b08d2a','#ffd166','#e9c46a'][Math.floor(Math.random()*5)]; }
+    function placeholderIcon(ind){
+      const map = { tech:'</> UI', renewable:'☀️ Solar', agribusiness:'🌾 Agro', creative:'🎨 Creative' };
+      return map[ind] || '📚 Course';
+    }
+    function payLocked(courseId){
+      const c = courses.find(x=>x.id===courseId);
+      if(!c || c.price===0) return false;
+      return state.payments[courseId]!=='success';
+    }
+
+    // Error handling demos
+    window.addEventListener('offline', ()=> showBanner('You are offline. Using cached content.', 'Warn'));
+    window.addEventListener('online', ()=> showBanner('Back online. Syncing progress…', 'Success'));
+
+    // Initial render
+    renderCourses();
+    renderMentors();
+    renderJobs();
+    renderCerts();
+  </script>
+</body>
+</html>
